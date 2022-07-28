@@ -1,7 +1,4 @@
-node_modules/
-pygls.log
-build/
-dist/
-*.pyc
-*.spec
-__pycache__
+out
+node_modules
+client/server
+.vscode-test
