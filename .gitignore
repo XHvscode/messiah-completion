@@ -1,0 +1,7 @@
+node_modules/
+pygls.log
+build/
+dist/
+*.pyc
+*.spec
+__pycache__
