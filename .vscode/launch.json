@@ -23,6 +23,14 @@
 			"outFiles": ["${workspaceRoot}/server/out/**/*.js"]
 		},
 		{
+			"name": "Launch Server",
+			"type": "python",
+			"request": "launch",
+			"program": "main.py",
+			"python": "${command:python.interpreterPath}",
+			"cwd": "${workspaceFolder}/server",
+		},
+		{
 			"name": "Language Server E2E Test",
 			"type": "extensionHost",
 			"request": "launch",
@@ -38,7 +46,7 @@
 	"compounds": [
 		{
 			"name": "Client + Server",
-			"configurations": ["Launch Client", "Attach to Server"]
+			"configurations": ["Launch Client", "Launch Server"]
 		}
 	]
 }
