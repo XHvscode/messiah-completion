@@ -397,41 +397,6 @@ def get_msh_prop_pos(class_name, def_name):
     return prop_pos_list
 
 
-# 判断该位置后的属性是否为class的属性，即是否以'self.'开头, 返回类名和跳转函数名
-# character的位置为光标所在位置
-# 返回列表，第一个为类名，第二个为函数名
-def get_definition_name_and_class(text_doc, text_pos: Position):
-    line_num = text_pos.line
-    chr = text_pos.character
-    lines = text_doc.lines
-    if line_num < 0 or line_num >= len(lines):
-        return None
-    line = lines[line_num]
-    if chr <= 5 or chr >= len(line):
-        return None
-    f_str = ''.join(lines)
-    script = jedi.Script(f_str)
-    node_name = script.get_context(line_num + 1, chr)
-    class_name = ''
-    if type(node_name) == jedi.api.classes.Name and node_name.type == 'function':
-        parent = node_name.parent()
-        if type(parent) == jedi.api.classes.Name and parent.type == 'class':
-            class_name = parent.name
-    if not class_name:
-        return None
-    pos = (line_num + 1, chr)
-    leaf = script._module_node.get_name_of_position(pos)
-    if not leaf or leaf.type != 'name':
-        return None
-    p_leaf = leaf.get_previous_leaf()
-    if not p_leaf or p_leaf.value != '.':
-        return None
-    pre_leaf = p_leaf.get_previous_leaf()
-    if not pre_leaf or pre_leaf.value != 'self':
-        return None
-    return [class_name, leaf.value]
-
-
 # 获得定义跳转位置列表
 def get_definition_list(class_name, def_name):
     if not class_name or not def_name:

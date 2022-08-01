@@ -50,16 +50,21 @@ class CompontentProperty(object):
 
 def get_filter_print_txt(file_path):
     lines = []
-    with open(file_path, 'r', encoding='UTF-8') as f:
+    with open(file_path, 'r', encoding='utf_8_sig') as f:
         lines = f.readlines()
     for i in range(len(lines)):
         line = lines[i]
         if line.lstrip().startswith("print "):
             lines[i] = line.replace("print ", "pass # print ", 1)
+        if line.lstrip().startswith("except Exception"):
+            lines[i] = line.replace("except ", "except: # ", 1)
+        if line.lstrip().startswith("exec"):
+            lines[i] = line.replace("exec ", "pass # exec ", 1)
     return "".join(lines)
 
 
 def get_file_class_property(file_path, clsname) -> dict:
+    # TODO 优化
     try:
         reads = get_filter_print_txt(file_path)
         ast_root_node = ast.parse(reads)
@@ -92,18 +97,28 @@ def get_file_class_property(file_path, clsname) -> dict:
                     elif type(prop_body) == ast.Assign:
                         if len(prop_body.targets) == 1:
                             ast_name = prop_body.targets[0]
-                            avr_name = ast_name.id
-                            func_lineno = ast_name.lineno
-                            func_offset = ast_name.col_offset
-                            func_end_offset = ast_name.end_col_offset
-                            position = (func_lineno - 1, func_offset, func_end_offset)
-                            class_prop_dict[avr_name] = CompontentProperty(
-                                avr_name, file_path, position, PropertyType.VARIABLE)
+                            if type(ast_name) == ast.Tuple:
+                                for elt_prop in ast_name.elts:
+                                    avr_name = elt_prop.id
+                                    func_lineno = elt_prop.lineno
+                                    func_offset = elt_prop.col_offset
+                                    func_end_offset = elt_prop.end_col_offset
+                                    position = (func_lineno - 1, func_offset, func_end_offset)
+                                    class_prop_dict[avr_name] = (
+                                        avr_name, file_path, position, 3)
+                            elif type(ast_name) == ast.Name:
+                                avr_name = ast_name.id
+                                func_lineno = ast_name.lineno
+                                func_offset = ast_name.col_offset
+                                func_end_offset = ast_name.end_col_offset
+                                position = (func_lineno - 1, func_offset, func_end_offset)
+                                class_prop_dict[avr_name] = (
+                                    avr_name, file_path, position, 3)
                 return class_prop_dict
     except Exception as e:
-        print(file_path)
         print(e)
     print("no find class_prop_dict:%s", file_path, clsname)
+    print("-"*30)
     return {}
 
 
@@ -125,6 +140,7 @@ def get_definition_name_and_class(text_doc, text_pos: Position):
     script = jedi.Script(f_str)
     node_name = script.get_context(line_num + 1, chr)
     class_name = ''
+    # TODO while 闭包
     if type(node_name) == jedi.api.classes.Name and node_name.type == 'function':
         parent = node_name.parent()
         if type(parent) == jedi.api.classes.Name and parent.type == 'class':
