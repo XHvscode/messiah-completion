@@ -8,6 +8,7 @@
 import os
 import json
 import utils
+import logging
 
 from define import *
 
@@ -25,7 +26,7 @@ class Relation(utils.Singleton):
             return
         fullpath = os.path.join(self.ws_path, module_file)
         class_property = utils.get_file_class_property(fullpath, cls_name)
-        print("load:", fullpath, cls_name)
+        logging.info("load: %s %s" % (fullpath, cls_name))
         module_prop_dict[cls_name] = {
             "cls_prop": class_property
         }
@@ -38,7 +39,7 @@ class Relation(utils.Singleton):
         self.ws_path = os.path.normpath(ws_rootpath)
         json_file = os.path.join(self.ws_path, ".vscode", "g83_jump_config.json")
         if not os.path.exists(json_file):
-            print("can not find json file:", json_file)
+            logging.error("can not find json file:: %s" % json_file)
             return False
 
         with open(json_file, "r") as fp:
@@ -54,7 +55,7 @@ class Relation(utils.Singleton):
                     self.load_module_cls(comp_file, comp_cls_name)
                     self.comp_2_root[(comp_file, comp_cls_name)] = (module_file, cls_name)
 
-        print('---load_json_config end------')
+        logging.info("---load_json_config end------")
         return True
 
     def find_location_def(self, cur_info):
@@ -105,3 +106,22 @@ class Relation(utils.Singleton):
         if len(self.location_lst) == 1:
             return self.location_lst[0]
         return self.location_lst
+
+    def reload_pyfile(self, full_url):
+        full_path = to_fs_path(full_url)
+        all_prop_dict = utils.get_file_class_property(full_path)
+        if not all_prop_dict:
+            return
+
+        relat_path = full_path.replace(self.ws_path, "", 1).lstrip("/").lstrip("\\")
+
+        file_prop = self.root_child_info.get(relat_path, {})
+
+        set_del_cls = set(file_prop.keys()) - set(all_prop_dict.keys())
+        for del_cls in set_del_cls:
+            file_prop.pop(del_cls, None)
+
+        for clsname, cls_prop_dict in all_prop_dict.items():
+            file_prop[clsname] = {
+                "cls_prop": cls_prop_dict,
+            }

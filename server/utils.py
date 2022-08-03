@@ -4,6 +4,7 @@
 import ast
 import jedi
 import os
+import logging
 
 from enum import Enum
 from define import *
@@ -63,18 +64,25 @@ def get_filter_print_txt(file_path):
     return "".join(lines)
 
 
-def get_file_class_property(file_path, clsname) -> dict:
+def get_file_class_property(file_path, clsname=None) -> dict:
     # TODO 优化
     try:
         reads = get_filter_print_txt(file_path)
         ast_root_node = ast.parse(reads)
+        all_prop_dict = {}
         for body_node in ast_root_node.body:
             if type(body_node) == ast.ClassDef:
                 class_name = body_node.name
-                if class_name != clsname:
-                    continue
+
+                if clsname:
+                    if clsname == class_name:
+                        class_prop_dict = {}
+                    else:
+                        continue
+                else:
+                    class_prop_dict = all_prop_dict.setdefault(class_name, {})
+
                 class_body_list = body_node.body
-                class_prop_dict = {}
                 for prop_body in class_body_list:
                     if type(prop_body) == ast.Expr:
                         expr_value = prop_body.value
@@ -114,11 +122,12 @@ def get_file_class_property(file_path, clsname) -> dict:
                                 position = (func_lineno - 1, func_offset, func_end_offset)
                                 class_prop_dict[avr_name] = (
                                     avr_name, file_path, position, 3)
-                return class_prop_dict
+                if clsname:
+                    return class_prop_dict
+        return all_prop_dict
     except Exception as e:
         print(e)
-    print("no find class_prop_dict:%s", file_path, clsname)
-    print("-"*30)
+    logging.info("no find class_prop_dict: %s %s" % (file_path, clsname))
     return {}
 
 
