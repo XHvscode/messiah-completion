@@ -66,6 +66,13 @@ def get_filter_print_txt(file_path):
 
 def get_file_class_property(file_path, clsname=None) -> dict:
     # TODO 优化
+
+    def get_position(ast_obj):
+        prop_lineno = ast_obj.lineno
+        prop_offset = ast_obj.col_offset
+        prop_end_offset = ast_obj.end_col_offset if hasattr(ast_obj, "end_col_offset") else 0
+        return (prop_lineno - 1, prop_offset, prop_end_offset)
+
     try:
         reads = get_filter_print_txt(file_path)
         ast_root_node = ast.parse(reads)
@@ -87,21 +94,22 @@ def get_file_class_property(file_path, clsname=None) -> dict:
                     if type(prop_body) == ast.Expr:
                         expr_value = prop_body.value
                         if hasattr(expr_value, 'func') and type(expr_value.func) == ast.Name and expr_value.func.id == 'Property':
-                            prop_name = expr_value.args[0].value
-                            prop_lineno = prop_body.lineno
-                            prop_offset = prop_body.col_offset
-                            prop_end_offset = prop_body.end_col_offset
-                            position = (prop_lineno - 1, prop_offset, prop_end_offset)
+                            pro_obj = expr_value.args[0]
+                            if hasattr(pro_obj, "s"):
+                                prop_name = pro_obj.s
+                            elif hasattr(pro_obj, "value"):
+                                prop_name = pro_obj.value
+                            else:
+                                logging.error(pro_obj)
+                                continue
+                            position = get_position(prop_body)
                             class_prop_dict[prop_name] = CompontentProperty(
                                 prop_name, file_path, position, PropertyType.PROPERTY)
                     elif type(prop_body) == ast.FunctionDef:
                         func_name:str = prop_body.name
                         if func_name.startswith("__"):
                             continue
-                        func_lineno = prop_body.lineno
-                        func_offset = prop_body.col_offset
-                        func_end_offset = prop_body.end_col_offset
-                        position = (func_lineno - 1, func_offset, func_end_offset)
+                        position = get_position(prop_body)
                         class_prop_dict[func_name] = CompontentProperty(
                             func_name, file_path, position, PropertyType.FUNCTION)
                     elif type(prop_body) == ast.Assign:
@@ -110,25 +118,19 @@ def get_file_class_property(file_path, clsname=None) -> dict:
                             if type(ast_name) == ast.Tuple:
                                 for elt_prop in ast_name.elts:
                                     avr_name = elt_prop.id
-                                    func_lineno = elt_prop.lineno
-                                    func_offset = elt_prop.col_offset
-                                    func_end_offset = elt_prop.end_col_offset
-                                    position = (func_lineno - 1, func_offset, func_end_offset)
+                                    position = get_position(elt_prop)
                                     class_prop_dict[avr_name] = CompontentProperty(
                                         avr_name, file_path, position, PropertyType.VARIABLE)
                             elif type(ast_name) == ast.Name:
                                 avr_name = ast_name.id
-                                func_lineno = ast_name.lineno
-                                func_offset = ast_name.col_offset
-                                func_end_offset = ast_name.end_col_offset
-                                position = (func_lineno - 1, func_offset, func_end_offset)
+                                position = get_position(ast_name)
                                 class_prop_dict[avr_name] = CompontentProperty(
                                     avr_name, file_path, position, PropertyType.VARIABLE)
                 if clsname:
                     return class_prop_dict
         return all_prop_dict
     except Exception as e:
-        logging.error(e)
+        logging.error(clsname + str(e))
     logging.error("no find class_prop_dict: %s %s" % (file_path, clsname))
     return {}
 

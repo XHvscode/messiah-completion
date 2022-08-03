@@ -22,7 +22,7 @@ sCmd = "pyinstaller -F \
 --distpath=%s/exe/dist \
 --specpath=%s/exe \
 --name=%s \
--pathes=%s;C:/Python38/DLLs;C:/Python38/Lib \
+-pathes=%s \
 %s/main.py"\
 % (sCurPath, sCurPath, sCurPath, GAME_NAME, sCurPath, sCurPath)
 
