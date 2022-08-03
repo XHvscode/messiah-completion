@@ -1,5 +1,9 @@
 # -*- coding:utf-8 -*-
+# Date: 2022-07-28 21:54:28
 # Author: xiaohao@corp.netease.com
+"""
+
+"""
 
 
 import ast
@@ -41,14 +45,12 @@ class PythonLanguageServer(LanguageServer):
 python_server = PythonLanguageServer()
 
 
-# @python_server.feature(COMPLETION, CompletionOptions(trigger_characters=['.']))
-# def completions(ls, params: Optional[CompletionParams] = None) -> CompletionList:
-#     """Returns completion items."""
-#     if not component_relation_dict or not main_class_components_dict or not main_class_property_dict:
-#         if not parsing_components_props(ls):
-#             return None
-#     completions_list = get_completions_list(ls, params.text_document, params.position)
-#     return completions_list
+@python_server.feature(COMPLETION, CompletionOptions(trigger_characters=['.']))
+def completions(ls, params: Optional[CompletionParams] = None) -> CompletionList:
+    """Returns completion items."""
+    if not Relation().load_json_config(ls):
+        return None
+    return Relation().get_completions_list(ls, params)
 
 
 @python_server.feature(TEXT_DOCUMENT_DID_OPEN)
@@ -61,8 +63,6 @@ async def did_open(ls, params: DidOpenTextDocumentParams):
 async def did_save(ls, params: DidSaveTextDocumentParams):
     """Text document did save notification."""
     file_uri = params.text_document.uri
-    ls.show_message('Text Document Did Save.' + file_uri)
-    # text_doc = ls.workspace.get_document(file_uri)
     Relation().reload_pyfile(file_uri)
 
 

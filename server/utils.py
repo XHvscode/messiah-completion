@@ -95,7 +95,9 @@ def get_file_class_property(file_path, clsname=None) -> dict:
                             class_prop_dict[prop_name] = CompontentProperty(
                                 prop_name, file_path, position, PropertyType.PROPERTY)
                     elif type(prop_body) == ast.FunctionDef:
-                        func_name = prop_body.name
+                        func_name:str = prop_body.name
+                        if func_name.startswith("__"):
+                            continue
                         func_lineno = prop_body.lineno
                         func_offset = prop_body.col_offset
                         func_end_offset = prop_body.end_col_offset
@@ -112,22 +114,22 @@ def get_file_class_property(file_path, clsname=None) -> dict:
                                     func_offset = elt_prop.col_offset
                                     func_end_offset = elt_prop.end_col_offset
                                     position = (func_lineno - 1, func_offset, func_end_offset)
-                                    class_prop_dict[avr_name] = (
-                                        avr_name, file_path, position, 3)
+                                    class_prop_dict[avr_name] = CompontentProperty(
+                                        avr_name, file_path, position, PropertyType.VARIABLE)
                             elif type(ast_name) == ast.Name:
                                 avr_name = ast_name.id
                                 func_lineno = ast_name.lineno
                                 func_offset = ast_name.col_offset
                                 func_end_offset = ast_name.end_col_offset
                                 position = (func_lineno - 1, func_offset, func_end_offset)
-                                class_prop_dict[avr_name] = (
-                                    avr_name, file_path, position, 3)
+                                class_prop_dict[avr_name] = CompontentProperty(
+                                    avr_name, file_path, position, PropertyType.VARIABLE)
                 if clsname:
                     return class_prop_dict
         return all_prop_dict
     except Exception as e:
-        print(e)
-    logging.info("no find class_prop_dict: %s %s" % (file_path, clsname))
+        logging.error(e)
+    logging.error("no find class_prop_dict: %s %s" % (file_path, clsname))
     return {}
 
 
@@ -167,3 +169,18 @@ def get_definition_name_and_class(text_doc, text_pos: Position):
     if not pre_leaf or pre_leaf.value != 'self':
         return None
     return class_name, leaf.value
+
+
+def get_class_name_by_pos(text_doc, text_position: Position):
+    line_num = text_position.line
+    chr = text_position.character
+    lines = text_doc.lines
+    f_str = ''.join(lines)
+    script = jedi.Script(f_str)
+    node_name = script.get_context(line_num + 1, chr)
+    class_name = ''
+    if type(node_name) == jedi.api.classes.Name and node_name.type == 'function':
+        parent = node_name.parent()
+        if type(parent) == jedi.api.classes.Name and parent.type == 'class':
+            class_name = parent.name
+    return class_name
