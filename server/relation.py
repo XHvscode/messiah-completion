@@ -41,9 +41,9 @@ class Relation(utils.Singleton):
 
         ws_rootpath = ls.workspace.root_path
         self.ws_path = os.path.normpath(ws_rootpath)
-        json_file = os.path.join(self.ws_path, ".vscode", "g83_jump_config.json")
+        json_file = os.path.join(self.ws_path, ".vscode", "class_relation.json")
         if not os.path.exists(json_file):
-            logging.error("can not find json file:: %s" % json_file)
+            logging.error("can not find config file:: %s" % json_file)
             return False
 
         with open(json_file, "r") as fp:
