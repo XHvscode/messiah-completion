@@ -28,6 +28,7 @@
 			"request": "launch",
 			"program": "main.py",
 			"python": "${command:python.interpreterPath}",
+			"args": ["--tcp"],
 			"cwd": "${workspaceFolder}/server",
 		},
 		{

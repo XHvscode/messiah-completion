@@ -6,18 +6,11 @@
 """
 
 
-import ast
-import os
-import json
 import argparse
 import logging
 
-import jedi
 import utils
 
-from cProfile import label
-from unicodedata import name
-from enum import Enum
 from typing import Optional
 
 from pygls.server import LanguageServer
@@ -26,7 +19,6 @@ from relation import Relation
 
 
 logging.basicConfig(filename="pygls.log", level=logging.DEBUG, filemode="w")
-
 
 
 class PythonLanguageServer(LanguageServer):
@@ -82,6 +74,38 @@ def definition(ls, params: DefinitionParams = None) -> Union[Location, List[Loca
     return Relation().get_definition_list(text_doc.path, name_info[0], name_info[1])
 
 
+def add_arguments(parser):
+    parser.description = "simple json server example"
+
+    parser.add_argument(
+        "--tcp", action="store_true",
+        help="Use TCP server"
+    )
+    parser.add_argument(
+        "--ws", action="store_true",
+        help="Use WebSocket server"
+    )
+    parser.add_argument(
+        "--host", default="127.0.0.1",
+        help="Bind to this address"
+    )
+    parser.add_argument(
+        "--port", type=int, default=16471,
+        help="Bind to this port"
+    )
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    add_arguments(parser)
+    args = parser.parse_args()
+    if args.tcp:
+        python_server.start_tcp(args.host, args.port)
+    elif args.ws:
+        python_server.start_ws(args.host, args.port)
+    else:
+        python_server.start_io()
+
 
 if __name__ == '__main__':
-    python_server.start_tcp("127.0.0.1", 16471)
+    main()

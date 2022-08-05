@@ -8,14 +8,9 @@
 import os
 import shutil
 
-GAME_NAME = "main"
+GAME_NAME = "main.xh"
 sCurPath = os.getcwd()
 print(sCurPath)
-
-exeDir = os.path.join(sCurPath, "exe")
-if os.path.exists(exeDir):
-    shutil.rmtree(exeDir)
-    print("delete exe")
 
 sCmd = "pyinstaller -F \
 --workpath=%s/exe/build \
@@ -26,4 +21,22 @@ sCmd = "pyinstaller -F \
 %s/main.py"\
 % (sCurPath, sCurPath, sCurPath, GAME_NAME, sCurPath, sCurPath)
 
+
+def rm_exe():
+    exeDir = os.path.join(sCurPath, "exe")
+    if os.path.exists(exeDir):
+        shutil.rmtree(exeDir)
+        print("delete exe")
+    log_file = "pygls.log"
+    if os.path.exists(log_file):
+        os.remove(log_file)
+
+rm_exe()
+
 os.system(sCmd)
+
+src = "%s/exe/dist/%s" % (sCurPath, GAME_NAME)
+dec = "%s/%s" % (sCurPath, GAME_NAME)
+shutil.copyfile(src, dec)
+
+rm_exe()
