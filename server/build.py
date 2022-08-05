@@ -7,8 +7,11 @@
 
 import os
 import shutil
+import platform
 
-GAME_NAME = "main.xh"
+IS_WINDOWS = True if platform.system().lower() == "windows" else False
+PACKNAME = "main" if IS_WINDOWS else "main.xh"
+
 sCurPath = os.getcwd()
 print(sCurPath)
 
@@ -19,7 +22,7 @@ sCmd = "pyinstaller -F \
 --name=%s \
 -pathes=%s \
 %s/main.py"\
-% (sCurPath, sCurPath, sCurPath, GAME_NAME, sCurPath, sCurPath)
+% (sCurPath, sCurPath, sCurPath, PACKNAME, sCurPath, sCurPath)
 
 
 def rm_exe():
@@ -34,9 +37,9 @@ def rm_exe():
 rm_exe()
 
 os.system(sCmd)
-
-src = "%s/exe/dist/%s" % (sCurPath, GAME_NAME)
-dec = "%s/%s" % (sCurPath, GAME_NAME)
+file_name = PACKNAME + ".exe" if IS_WINDOWS else PACKNAME
+src = "%s/exe/dist/%s" % (sCurPath, file_name)
+dec = "%s/%s" % (sCurPath, file_name)
 shutil.copyfile(src, dec)
 
 rm_exe()
