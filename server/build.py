@@ -43,3 +43,7 @@ dec = "%s/%s" % (sCurPath, file_name)
 shutil.copyfile(src, dec)
 
 rm_exe()
+
+# 该权限
+if not IS_WINDOWS:
+    os.system("chmod 755 %s" % PACKNAME)

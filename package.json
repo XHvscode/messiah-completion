@@ -3,7 +3,7 @@
 	"description": "A messiah language server",
 	"author": "xiaohao@corp.netease.com",
 	"license": "MIT",
-	"version": "1.0.3",
+	"version": "1.0.2",
 	"repository": {
 		"type": "git",
 		"url": "https://gitlab.nie.netease.com/xiaohao/vscode-messiah-completion"
