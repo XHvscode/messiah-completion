@@ -107,7 +107,7 @@ def get_file_class_property(file_path, clsname=None) -> dict:
                             class_prop_dict[prop_name] = CompontentProperty(
                                 prop_name, file_path, position, PropertyType.PROPERTY)
                     elif type(prop_body) == ast.FunctionDef:
-                        func_name:str = prop_body.name
+                        func_name: str = prop_body.name
                         if func_name.startswith("__"):
                             continue
                         position = get_position(prop_body, PropertyType.FUNCTION)
@@ -124,9 +124,10 @@ def get_file_class_property(file_path, clsname=None) -> dict:
                                         avr_name, file_path, position, PropertyType.VARIABLE)
                             elif type(ast_name) == ast.Name:
                                 avr_name = ast_name.id
-                                position = get_position(ast_name)
-                                class_prop_dict[avr_name] = CompontentProperty(
-                                    avr_name, file_path, position, PropertyType.VARIABLE)
+                                if avr_name != "__metaclass__":
+                                    position = get_position(ast_name)
+                                    class_prop_dict[avr_name] = CompontentProperty(
+                                        avr_name, file_path, position, PropertyType.VARIABLE)
                 if clsname:
                     return class_prop_dict
         return all_prop_dict

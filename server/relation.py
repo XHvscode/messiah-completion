@@ -25,10 +25,13 @@ class Relation(utils.Singleton):
         return full_path.replace(self.ws_path, "", 1).lstrip("/").lstrip("\\")
 
     def load_module_cls(self, module_file, cls_name):
+        fullpath = os.path.join(self.ws_path, module_file)
+        if not os.path.exists(fullpath):
+            logging.info("no file: %s" % (fullpath, ))
+            return
         module_prop_dict = self.root_child_info.setdefault(module_file, {})
         if cls_name in module_prop_dict:
             return
-        fullpath = os.path.join(self.ws_path, module_file)
         class_property = utils.get_file_class_property(fullpath, cls_name)
         logging.info("load: %s %s" % (fullpath, cls_name))
         module_prop_dict[cls_name] = {
@@ -58,6 +61,10 @@ class Relation(utils.Singleton):
                     comp_file = os.path.normpath(comp_file)
                     self.load_module_cls(comp_file, comp_cls_name)
                     self.comp_2_root[(comp_file, comp_cls_name)] = (module_file, cls_name)
+                for tcomp in cls_info.get("bases", []):
+                    comp_file, comp_cls_name = tcomp
+                    comp_file = os.path.normpath(comp_file)
+                    self.load_module_cls(comp_file, comp_cls_name)
 
         logging.info("---load_json_config end------")
         return True
