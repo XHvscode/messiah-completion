@@ -67,11 +67,12 @@ def get_filter_print_txt(file_path):
 def get_file_class_property(file_path, clsname=None) -> dict:
     # TODO 优化
 
-    def get_position(ast_obj):
+    def get_position(ast_obj, ast_type=-1):
         prop_lineno = ast_obj.lineno
         prop_offset = ast_obj.col_offset
         prop_end_offset = ast_obj.end_col_offset if hasattr(ast_obj, "end_col_offset") else 0
-        return (prop_lineno - 1, prop_offset, prop_end_offset)
+        decorator_line = len(ast_obj.decorator_list) if ast_type == PropertyType.FUNCTION else 0
+        return (prop_lineno - 1 + decorator_line, prop_offset, prop_end_offset)
 
     try:
         reads = get_filter_print_txt(file_path)
@@ -109,7 +110,7 @@ def get_file_class_property(file_path, clsname=None) -> dict:
                         func_name:str = prop_body.name
                         if func_name.startswith("__"):
                             continue
-                        position = get_position(prop_body)
+                        position = get_position(prop_body, PropertyType.FUNCTION)
                         class_prop_dict[func_name] = CompontentProperty(
                             func_name, file_path, position, PropertyType.FUNCTION)
                     elif type(prop_body) == ast.Assign:
